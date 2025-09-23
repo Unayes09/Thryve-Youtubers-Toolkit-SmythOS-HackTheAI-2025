@@ -63,8 +63,28 @@ export function Hero() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Video Thumbnails */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-red-500/50 to-red-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-red-500/50 to-red-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -72,12 +92,38 @@ export function Hero() {
                   >
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                {/* Hover glow effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-red-400/20 to-red-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
 
               {/* AI Brain Icon */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-purple-500/50 to-purple-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-purple-500/50 to-purple-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(147, 51, 234, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -85,12 +131,37 @@ export function Hero() {
                   >
                     <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-purple-400/20 to-purple-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
 
               {/* Transcript Icon */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-blue-500/50 to-blue-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-blue-500/50 to-blue-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -98,12 +169,37 @@ export function Hero() {
                   >
                     <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-blue-400/20 to-blue-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
 
               {/* Thumbnail Creation */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-orange-500/50 to-orange-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-orange-500/50 to-orange-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(249, 115, 22, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -111,12 +207,37 @@ export function Hero() {
                   >
                     <path d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-orange-400/20 to-orange-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
 
               {/* Content Ideas */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-green-500/50 to-green-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-green-500/50 to-green-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(34, 197, 94, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -124,12 +245,37 @@ export function Hero() {
                   >
                     <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-green-400/20 to-green-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
 
               {/* Reels/Shorts */}
-              <div className="relative h-20 rounded-md bg-gradient-to-br from-pink-500/50 to-pink-600/80 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <motion.div
+                className="relative h-20 rounded-md bg-gradient-to-br from-pink-500/50 to-pink-600/80 flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px -5px rgba(236, 72, 153, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              >
+                <motion.div
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -137,8 +283,13 @@ export function Hero() {
                   >
                     <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" />
                   </svg>
-                </div>
-              </div>
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-md bg-gradient-to-br from-pink-400/20 to-pink-500/20 opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.div>
             </div>
           </div>
         </motion.div>
