@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -67,25 +68,27 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="scroll-smooth">
-      <body
-        className={`${poppins.variable} antialiased text-[#2d2d2b] bg-white`}
-      >
-        {children}
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify([organizationLd, productLd]),
-          }}
-        />
-        {/* Lightweight analytics placeholder */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "window.__analytics=window.__analytics||{}",
-          }}
-        />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className="scroll-smooth">
+        <body
+          className={`${poppins.variable} antialiased text-[#2d2d2b] bg-white`}
+        >
+          {children}
+          <script
+            type="application/ld+json"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify([organizationLd, productLd]),
+            }}
+          />
+          {/* Lightweight analytics placeholder */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: "window.__analytics=window.__analytics||{}",
+            }}
+          />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

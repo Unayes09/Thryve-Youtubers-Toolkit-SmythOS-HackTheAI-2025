@@ -59,13 +59,13 @@ export function Header() {
             </a>
           ))}
           <Link
-            href="/signin"
+            href="/sign-in"
             className="px-4 py-2 rounded-full border border-black/10 hover:border-transparent bg-white hover:bg-black/5 transition-colors"
           >
             Sign in
           </Link>
           <Link
-            href="/signup"
+            href="/sign-up"
             className="px-4 py-2 rounded-full text-white"
             style={{ backgroundColor: "#ec9347" }}
           >

@@ -32,7 +32,7 @@ export function Hero() {
             className="flex flex-col sm:flex-row gap-3 sm:gap-4"
           >
             <motion.a
-              href="/signup"
+              href="/sign-up"
               aria-label="Get Started for Free"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-white focus-visible:outline-2 focus-visible:outline-offset-2"
               style={{ backgroundColor: "#ec9347" }}
