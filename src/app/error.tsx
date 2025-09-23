@@ -21,7 +21,7 @@ export default function Error({
       showRetry={true}
       showHome={true}
       onRetry={reset}
-      fullScreen={false}
+      fullScreen={true}
     />
   );
 }
