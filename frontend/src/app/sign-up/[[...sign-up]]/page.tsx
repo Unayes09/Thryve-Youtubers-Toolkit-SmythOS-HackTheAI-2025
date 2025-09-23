@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Header } from "../../../components/landing/Header";
 import { Footer } from "../../../components/landing/Footer";
+import { AuthIllustration } from "../../../components/auth/AuthIllustration";
 import Link from "next/link";
 
 export default function Page() {
@@ -51,11 +52,7 @@ export default function Page() {
                 />
                 <span>Free plan • No credit card required</span>
               </div>
-              <div className="grid grid-cols-3 gap-2" aria-hidden>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-14 rounded-md bg-black/[.04]" />
-                ))}
-              </div>
+              <AuthIllustration />
               {errorMessage ? (
                 <div className="text-red-600 text-sm" role="alert">
                   {errorMessage}
@@ -68,6 +65,12 @@ export default function Page() {
               >
                 Continue with Google
               </Button>
+              <div
+                id="clerk-captcha"
+                data-cl-theme="light"
+                data-cl-size="flexible"
+                data-cl-language="en-US"
+              />
               <div className="relative">
                 <div className="absolute inset-0 flex items-center" aria-hidden>
                   <div className="w-full border-t border-black/10" />
@@ -81,7 +84,6 @@ export default function Page() {
               <ul className="text-left text-sm text-black/70 space-y-2">
                 <li>• AI-first workflow to kickstart your content</li>
                 <li>• Sync across devices and collaborate</li>
-                <li>• Upgrade anytime</li>
               </ul>
               <p className="text-xs text-black/60">
                 Already have an account?{" "}

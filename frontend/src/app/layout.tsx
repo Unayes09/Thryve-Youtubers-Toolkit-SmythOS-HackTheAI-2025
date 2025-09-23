@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     images: [ogImageUrl],
   },
   icons: [{ rel: "icon", url: "/favicon.ico" }],
-  themeColor: "#FFFFFF",
   alternates: { canonical: siteUrl },
 };
 

@@ -1,15 +1,27 @@
 "use client";
 import { useSignIn } from "@clerk/nextjs";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Header } from "../../../components/landing/Header";
 import { Footer } from "../../../components/landing/Footer";
+import { AuthIllustration } from "../../../components/auth/AuthIllustration";
 import Link from "next/link";
 
 export default function Page() {
   const { isLoaded, signIn } = useSignIn();
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const queryError = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("error");
+    if (!code) return null;
+    if (code === "not_authenticated") return "You need to sign in to continue.";
+    if (code === "sync_failed")
+      return "We couldn't sync your profile. Please try again.";
+    return "Sign in failed. Please try again.";
+  }, []);
 
   const handleGoogle = useCallback(async () => {
     if (!isLoaded || !signIn || submitting) return;
@@ -51,14 +63,10 @@ export default function Page() {
                 />
                 <span>Secure Google OAuth • No password required</span>
               </div>
-              <div className="grid grid-cols-3 gap-2" aria-hidden>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-14 rounded-md bg-black/[.04]" />
-                ))}
-              </div>
-              {errorMessage ? (
+              <AuthIllustration />
+              {errorMessage || queryError ? (
                 <div className="text-red-600 text-sm" role="alert">
-                  {errorMessage}
+                  {errorMessage || queryError}
                 </div>
               ) : null}
               <Button
