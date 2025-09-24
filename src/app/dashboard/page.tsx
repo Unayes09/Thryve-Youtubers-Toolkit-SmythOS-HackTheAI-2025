@@ -13,7 +13,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ExternalLink, Play, Users, Eye, Video, Youtube } from "lucide-react";
+import {
+  ExternalLink,
+  Play,
+  Users,
+  Eye,
+  Video,
+  Youtube,
+  MessageSquare,
+} from "lucide-react";
 import { LoadingPage } from "@/components/loading/LoadingPage";
 import Image from "next/image";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -24,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CommentCritiqueDialog } from "@/components/ui/comment-critique-dialog";
 
 interface Video {
   id: string;
@@ -95,6 +104,8 @@ export default function Dashboard() {
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [critiqueOpen, setCritiqueOpen] = useState(false);
+  const [critiqueVideoId, setCritiqueVideoId] = useState<string | null>(null);
   const existingChannelIds = useMemo(() => {
     return new Set((channelsData?.channels || []).map((c) => c.id));
   }, [channelsData]);
@@ -710,14 +721,27 @@ export default function Dashboard() {
                     <CardContent>
                       <div className="flex items-center justify-between text-sm text-gray-600">
                         <span>{formatDate(video.publishedAt)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(video.url, "_blank")}
-                          className="text-primary hover:text-primary/80"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(video.url, "_blank")}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setCritiqueVideoId(video.id as string);
+                              setCritiqueOpen(true);
+                            }}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -727,6 +751,11 @@ export default function Dashboard() {
           </>
         )}
       </div>
+      <CommentCritiqueDialog
+        open={critiqueOpen}
+        onOpenChange={setCritiqueOpen}
+        ytVideoId={critiqueVideoId}
+      />
     </DashboardShell>
   );
 }
