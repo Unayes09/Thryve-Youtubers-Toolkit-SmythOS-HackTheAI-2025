@@ -81,6 +81,7 @@ model VideoIdeas {
   plan        String?      @db.Text
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  tags        String?      @db.Text
   channel     Channels     @relation(fields: [channelId], references: [channelId])
   thumbnails  Thumbnails[]
   reels       Reels[]
