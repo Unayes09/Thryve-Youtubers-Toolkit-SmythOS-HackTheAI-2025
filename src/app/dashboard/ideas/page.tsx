@@ -36,6 +36,8 @@ import {
   Video,
   Clock,
   Tag,
+  Sparkles,
+  Loader,
 } from "lucide-react";
 
 interface Channel {
@@ -70,6 +72,25 @@ interface VideoIdeasResponse {
   totalIdeas: number;
 }
 
+interface GeneratedIdea {
+  title: string;
+  details_about_the_idea: string;
+}
+
+interface GeneratedIdeasResponse {
+  next_video_suggestion: {
+    id: string;
+    name: string;
+    result: {
+      Output: {
+        output: {
+          [key: string]: GeneratedIdea;
+        };
+      };
+    };
+  };
+}
+
 export default function VideoIdeasPage() {
   const [channelsData, setChannelsData] = useState<ChannelsResponse | null>(
     null
@@ -91,6 +112,17 @@ export default function VideoIdeasPage() {
     tags: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
+  const [showGeneratedIdeas, setShowGeneratedIdeas] = useState(false);
+  const [confirmGenerateOpen, setConfirmGenerateOpen] = useState(false);
+  const [isSavingGeneratedIdea, setIsSavingGeneratedIdea] = useState([
+    false,
+    false,
+    false,
+    false,
+    false,
+  ]);
 
   useEffect(() => {
     const loadMyChannels = async () => {
@@ -318,6 +350,94 @@ export default function VideoIdeasPage() {
     setCreateModalOpen(true);
   };
 
+  const handleGenerateNextIdeas = async () => {
+    if (!selectedChannelId) {
+      toast.error("Please select a channel first");
+      return;
+    }
+
+    try {
+      setGeneratingIdeas(true);
+      setError(null);
+
+      const res = await fetch("/api/ideas/generate-next", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: selectedChannelId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to generate video ideas");
+      }
+
+      // Extract ideas from the response
+      const ideas = Object.values(
+        data.next_video_suggestion.result.Output.output
+      ) as GeneratedIdea[];
+      setGeneratedIdeas(ideas);
+      setShowGeneratedIdeas(true);
+      setConfirmGenerateOpen(false);
+
+      toast.success("Video ideas generated successfully!");
+    } catch (err) {
+      console.error("Generate ideas error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to generate ideas"
+      );
+    } finally {
+      setGeneratingIdeas(false);
+    }
+  };
+
+  const handleSaveGeneratedIdea = async (
+    idea: GeneratedIdea,
+    index: number
+  ) => {
+    const newIsSavingGeneratedIdea = [...isSavingGeneratedIdea];
+    newIsSavingGeneratedIdea[index] = true;
+    setIsSavingGeneratedIdea(newIsSavingGeneratedIdea);
+    if (!selectedChannelId) return;
+
+    try {
+      const res = await fetch("/api/ideas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: selectedChannelId,
+          title: idea.title,
+          description: idea.details_about_the_idea,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Failed to save idea");
+      }
+
+      toast.success("Idea saved successfully!");
+
+      // Refresh the ideas list
+      const refreshRes = await fetch(
+        `/api/ideas?channelId=${encodeURIComponent(selectedChannelId)}`
+      );
+      const refreshData = await refreshRes.json();
+      if (refreshRes.ok) {
+        setVideoIdeas(refreshData.ideas || []);
+      }
+    } catch (err) {
+      console.error("Save idea error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to save idea");
+    } finally {
+      const newIsSavingGeneratedIdea = [...isSavingGeneratedIdea];
+      newIsSavingGeneratedIdea[index] = false;
+      setIsSavingGeneratedIdea(newIsSavingGeneratedIdea);
+    }
+  };
+
   if (loading) {
     return (
       <LoadingPage
@@ -332,14 +452,14 @@ export default function VideoIdeasPage() {
       <div className="container flex flex-col items-center justify-center mx-auto p-6">
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
-            <CardTitle className="text-red-800">Error</CardTitle>
-            <CardDescription className="text-red-600">{error}</CardDescription>
+            <CardTitle className="text-primary">Error</CardTitle>
+            <CardDescription className="text-primary">{error}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
-              className="border-red-300 text-red-700 hover:bg-red-100"
+              className="border-red-300 text-primary hover:bg-red-100"
             >
               Try Again
             </Button>
@@ -415,6 +535,81 @@ export default function VideoIdeasPage() {
           </Card>
         )}
 
+        {/* Generated Ideas Display */}
+        {showGeneratedIdeas && generatedIdeas.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    <span>AI Generated Ideas</span>
+                  </CardTitle>
+                  <CardDescription>
+                    {generatedIdeas.length} AI-generated video ideas for your
+                    channel
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowGeneratedIdeas(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-4">
+                {generatedIdeas.map((idea, index) => (
+                  <Card
+                    key={index}
+                    className="p-4 border-primary/20 bg-primary/5"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h3 className="text-lg font-semibold text-[#2d2d2b]">
+                            {idea.title}
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-primary/20 text-primary"
+                          >
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            AI Generated
+                          </Badge>
+                        </div>
+
+                        <p className="text-sm text-[#2d2d2b] mb-3">
+                          {idea.details_about_the_idea}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveGeneratedIdea(idea, index)}
+                          className="bg-primary hover:bg-primary text-white"
+                          disabled={isSavingGeneratedIdea[index]}
+                        >
+                          {isSavingGeneratedIdea[index] ? (
+                            <Loader className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4 mr-1" />
+                          )}
+                          {isSavingGeneratedIdea[index]
+                            ? "Saving..."
+                            : "Save Idea"}
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Video Ideas */}
         {selectedChannelId && (
           <Card>
@@ -435,13 +630,32 @@ export default function VideoIdeasPage() {
                         } found`}
                   </CardDescription>
                 </div>
-                <Button
-                  className="bg-primary hover:bg-primary/90"
-                  onClick={openCreateModal}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Idea
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setConfirmGenerateOpen(true)}
+                    disabled={generatingIdeas}
+                  >
+                    {generatingIdeas ? (
+                      <>
+                        <Loader className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        AI Generate Ideas
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={openCreateModal}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Idea
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -495,18 +709,6 @@ export default function VideoIdeasPage() {
                           )}
 
                           <div className="flex flex-wrap gap-2 mb-3">
-                            {idea.script && (
-                              <Badge variant="secondary" className="text-xs">
-                                <FileText className="h-3 w-3 mr-1" />
-                                Has Script
-                              </Badge>
-                            )}
-                            {idea.plan && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Lightbulb className="h-3 w-3 mr-1" />
-                                Has Plan
-                              </Badge>
-                            )}
                             {idea.tags && (
                               <Badge variant="secondary" className="text-xs">
                                 <Tag className="h-3 w-3 mr-1" />
@@ -514,22 +716,6 @@ export default function VideoIdeasPage() {
                               </Badge>
                             )}
                           </div>
-
-                          {idea.script && (
-                            <div className="text-xs text-gray-500 mb-2">
-                              <strong>Script:</strong>{" "}
-                              {idea.script.substring(0, 100)}
-                              {idea.script.length > 100 && "..."}
-                            </div>
-                          )}
-
-                          {idea.plan && (
-                            <div className="text-xs text-gray-500">
-                              <strong>Plan:</strong>{" "}
-                              {idea.plan.substring(0, 100)}
-                              {idea.plan.length > 100 && "..."}
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex items-center space-x-2 ml-4">
@@ -544,7 +730,7 @@ export default function VideoIdeasPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteIdea(idea.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-primary hover:text-primary hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -605,34 +791,6 @@ export default function VideoIdeasPage() {
             </div>
 
             <div>
-              <Label htmlFor="script">Script</Label>
-              <Textarea
-                id="script"
-                placeholder="Write your video script here..."
-                value={formData.script}
-                onChange={(e) =>
-                  setFormData({ ...formData, script: e.target.value })
-                }
-                className="mt-1"
-                rows={4}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="plan">Plan</Label>
-              <Textarea
-                id="plan"
-                placeholder="Outline your video plan, structure, or key points..."
-                value={formData.plan}
-                onChange={(e) =>
-                  setFormData({ ...formData, plan: e.target.value })
-                }
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-
-            <div>
               <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
@@ -664,6 +822,64 @@ export default function VideoIdeasPage() {
                 : editingIdea
                 ? "Update Idea"
                 : "Create Idea"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Ideas Confirmation Dialog */}
+      <Dialog open={confirmGenerateOpen} onOpenChange={setConfirmGenerateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span>Generate AI Video Ideas</span>
+            </DialogTitle>
+            <DialogDescription>
+              This will generate 5 AI-powered video ideas tailored to your
+              channel. The process takes about 4 minutes, so please don't close
+              this page.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center space-x-2 text-yellow-800">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Estimated time: ~4 minutes
+                </span>
+              </div>
+              <p className="text-xs text-yellow-700 mt-1">
+                Please keep this page open during generation
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmGenerateOpen(false)}
+              disabled={generatingIdeas}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-primary hover:bg-primary text-white"
+              onClick={handleGenerateNextIdeas}
+              disabled={generatingIdeas}
+            >
+              {generatingIdeas ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate Ideas
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

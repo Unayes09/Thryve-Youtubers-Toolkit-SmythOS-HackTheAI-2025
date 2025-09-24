@@ -4,7 +4,7 @@ import { requireUserId } from "@/lib/clerk";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await requireUserId();
@@ -17,7 +17,7 @@ export async function PUT(
 
     // Verify idea exists and belongs to user
     const idea = await prisma.videoIdeas.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: { channel: true },
     });
 
@@ -27,7 +27,7 @@ export async function PUT(
 
     // Update video idea
     const updated = await prisma.videoIdeas.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         title,
         description: description || null,
@@ -53,14 +53,14 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await requireUserId();
 
     // Verify idea exists and belongs to user
     const idea = await prisma.videoIdeas.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: { channel: true },
     });
 
@@ -70,7 +70,7 @@ export async function DELETE(
 
     // Delete video idea
     await prisma.videoIdeas.delete({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
 
     return NextResponse.json({
