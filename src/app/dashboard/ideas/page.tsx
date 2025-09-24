@@ -128,6 +128,9 @@ export default function VideoIdeasPage() {
   const [generatingPlan, setGeneratingPlan] = useState(false);
   const [selectedIdeaForPlan, setSelectedIdeaForPlan] =
     useState<VideoIdea | null>(null);
+  const [generatingSEO, setGeneratingSEO] = useState(false);
+  const [selectedIdeaForSEO, setSelectedIdeaForSEO] =
+    useState<VideoIdea | null>(null);
 
   useEffect(() => {
     const loadMyChannels = async () => {
@@ -412,6 +415,49 @@ export default function VideoIdeasPage() {
     } finally {
       setGeneratingPlan(false);
       setSelectedIdeaForPlan(null);
+    }
+  };
+
+  const handleGenerateSEO = async (idea: VideoIdea) => {
+    if (!idea.title) {
+      toast.error("Idea must have a title to generate SEO keywords");
+      return;
+    }
+
+    try {
+      setGeneratingSEO(true);
+      setSelectedIdeaForSEO(idea);
+
+      const res = await fetch("/api/ideas/generate-seo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ideaId: idea.id,
+          video_idea: idea.title,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to generate SEO keywords");
+      }
+
+      // Update the idea with the new SEO keywords
+      const updatedIdeas = videoIdeas.map((i) =>
+        i.id === idea.id ? { ...i, tags: data.keywords } : i
+      );
+      setVideoIdeas(updatedIdeas);
+
+      toast.success("SEO keywords generated successfully!");
+    } catch (err) {
+      console.error("Generate SEO error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to generate SEO keywords"
+      );
+    } finally {
+      setGeneratingSEO(false);
+      setSelectedIdeaForSEO(null);
     }
   };
 
@@ -775,10 +821,18 @@ export default function VideoIdeasPage() {
 
                           <div className="flex flex-wrap gap-2 mb-3">
                             {idea.tags && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Tag className="h-3 w-3 mr-1" />
-                                {idea.tags.split(",").length} Tags
-                              </Badge>
+                              <div className="flex flex-wrap gap-1">
+                                {idea.tags.split(",").map((tag, tagIndex) => (
+                                  <Badge
+                                    key={tagIndex}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    <Tag className="h-3 w-3 mr-1" />
+                                    {tag.trim()}
+                                  </Badge>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -812,6 +866,23 @@ export default function VideoIdeasPage() {
                               )}
                             </Button>
                           )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateSEO(idea)}
+                            disabled={
+                              generatingSEO &&
+                              selectedIdeaForSEO?.id === idea.id
+                            }
+                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          >
+                            {generatingSEO &&
+                            selectedIdeaForSEO?.id === idea.id ? (
+                              <Loader className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Tag className="h-4 w-4" />
+                            )}
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -930,7 +1001,7 @@ export default function VideoIdeasPage() {
             </DialogTitle>
             <DialogDescription>
               This will generate 5 AI-powered video ideas tailored to your
-              channel. The process takes about 4 minutes, so please don't close
+              channel. The process takes about 3 minutes, so please don't close
               this page.
             </DialogDescription>
           </DialogHeader>
@@ -940,7 +1011,7 @@ export default function VideoIdeasPage() {
               <div className="flex items-center space-x-2 text-yellow-800">
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  Estimated time: ~4 minutes
+                  Estimated time: ~3 minutes
                 </span>
               </div>
               <p className="text-xs text-yellow-700 mt-1">
@@ -1000,7 +1071,8 @@ export default function VideoIdeasPage() {
                 </h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>
-                    <strong>Type:</strong> {currentPlan.video_type}
+                    <strong>Type:</strong>{" "}
+                    {currentPlan.video_type.toUpperCase()}
                   </span>
                   <span>
                     <strong>Duration:</strong>{" "}
