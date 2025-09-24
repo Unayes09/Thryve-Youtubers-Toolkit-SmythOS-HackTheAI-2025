@@ -407,9 +407,7 @@ export default function SimilarChannelsPage() {
               onClick={onDiscover}
               disabled={discovering}
             >
-              {discovering
-                ? "Processing... (up to ~100s)"
-                : "Proceed (20 credits)"}
+              {discovering ? "Processing... " : "Proceed (20 credits)"}
             </Button>
           </div>
         </DialogContent>

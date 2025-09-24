@@ -79,7 +79,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar className="bg-white border-r">
-        <SidebarHeader className="px-4 py-4 border-b">
+        <SidebarHeader className="px-4 py-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image
               src="/logo.png"
