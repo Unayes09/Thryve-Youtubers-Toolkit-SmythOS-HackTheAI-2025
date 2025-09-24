@@ -20,6 +20,8 @@ export default function Page() {
     if (code === "not_authenticated") return "You need to sign in to continue.";
     if (code === "sync_failed")
       return "We couldn't sync your profile. Please try again.";
+    if (code === "user_not_found")
+      return "No account found. Please sign up to continue.";
     return "Sign in failed. Please try again.";
   }, []);
 

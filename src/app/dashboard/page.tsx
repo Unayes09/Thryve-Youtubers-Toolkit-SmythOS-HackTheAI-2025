@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,6 +22,8 @@ import {
   Youtube,
   Settings,
 } from "lucide-react";
+import { LoadingPage } from "@/components/loading/LoadingPage";
+import Image from "next/image";
 
 interface Video {
   id: string;
@@ -65,23 +69,66 @@ export default function Dashboard() {
   const [videosLoading, setVideosLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Onboarding state
+  const [hasChannels, setHasChannels] = useState<boolean | null>(null);
+  const [requiresGoogleOAuth, setRequiresGoogleOAuth] = useState(false);
+  const [suggestions, setSuggestions] = useState<
+    {
+      id: string;
+      title: string;
+      description: string | null;
+      thumbnail: string | null;
+    }[]
+  >([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    {
+      id: string;
+      title: string;
+      description: string | null;
+      thumbnail: string | null;
+      subscriberCount?: string;
+      videoCount?: string;
+      viewCount?: string;
+    }[]
+  >([]);
+  const [searching, setSearching] = useState(false);
+  const [adding, setAdding] = useState<string | null>(null);
+
   useEffect(() => {
-    const fetchChannels = async () => {
+    const checkChannels = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/youtube/videos");
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch channels");
+        setError(null);
+        const res = await fetch("/api/channels/check");
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to check channels");
         }
 
-        const result = await response.json();
-        setChannelsData(result);
+        setHasChannels(Boolean(data.hasChannels));
+        setRequiresGoogleOAuth(Boolean(data.requiresGoogleOAuth));
 
-        // Auto-select first channel if available
-        if (result.channels && result.channels.length > 0) {
-          setSelectedChannelId(result.channels[0].id);
+        if (data.hasChannels) {
+          // data.channels are from DB: fields include channelId, title, ...
+          const mapped = {
+            channels: (data.channels || []).map((c: any) => ({
+              id: c.channelId,
+              title: c.title,
+              description: c.description,
+              thumbnail: c.thumbnail,
+              subscriberCount: String(c.subscriberCount ?? "0"),
+              videoCount: String(c.videoCount ?? "0"),
+              viewCount: String(c.viewCount ?? "0"),
+            })),
+            totalChannels: (data.channels || []).length,
+          } as ChannelsResponse;
+          setChannelsData(mapped);
+          if (mapped.channels.length > 0) {
+            setSelectedChannelId(mapped.channels[0].id);
+          }
+        } else {
+          setSuggestions(data.suggestions || []);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -90,7 +137,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchChannels();
+    checkChannels();
   }, []);
 
   useEffect(() => {
@@ -118,6 +165,65 @@ export default function Dashboard() {
     }
   };
 
+  const onSearch = async () => {
+    if (!searchQuery.trim()) return;
+    try {
+      setSearching(true);
+      setError(null);
+      const res = await fetch(
+        `/api/youtube/channels/search?q=${encodeURIComponent(
+          searchQuery.trim()
+        )}`
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Search failed");
+      setSearchResults(data.results || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const onAddChannel = async (channelId: string) => {
+    try {
+      setAdding(channelId);
+      setError(null);
+      const res = await fetch("/api/channels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to add channel");
+
+      // Refresh state by re-checking
+      const check = await fetch("/api/channels/check");
+      const checkData = await check.json();
+      if (check.ok && checkData.hasChannels) {
+        const mapped = {
+          channels: (checkData.channels || []).map((c: any) => ({
+            id: c.channelId,
+            title: c.title,
+            description: c.description,
+            thumbnail: c.thumbnail,
+            subscriberCount: String(c.subscriberCount ?? "0"),
+            videoCount: String(c.videoCount ?? "0"),
+            viewCount: String(c.viewCount ?? "0"),
+          })),
+          totalChannels: (checkData.channels || []).length,
+        } as ChannelsResponse;
+        setHasChannels(true);
+        setChannelsData(mapped);
+        setSelectedChannelId(mapped.channels[0]?.id ?? null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setAdding(null);
+    }
+  };
+
   const formatNumber = (num: string) => {
     const number = parseInt(num);
     if (number >= 1000000) {
@@ -138,14 +244,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your YouTube channels...</p>
-          </div>
-        </div>
-      </div>
+      <LoadingPage
+        message="Loading your YouTube channels..."
+        fullScreen={true}
+      />
     );
   }
 
@@ -173,29 +275,151 @@ export default function Dashboard() {
     );
   }
 
-  if (!channelsData || channelsData.channels.length === 0) {
+  // Onboarding UI when user has no channels yet
+  if (hasChannels === false) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="border-yellow-200 bg-yellow-50">
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[85vh]">
+        <div className="absolute inset-0 -z-10 flex justify-end">
+          <div className="w-[480px] h-[320px] bg-[#ec9347]/10 blur-2xl rounded-[48px]" />
+        </div>
+        <div className="absolute inset-0 -z-10 flex justify-start">
+          <div className="w-[480px] h-[320px] bg-[#ec9347]/10 blur-2xl rounded-[48px]" />
+        </div>
+        <div className="w-full flex items-center justify-center py-6">
+          <Image
+            src="/logo.png"
+            alt="Thryve logo"
+            width={360}
+            height={100}
+            priority
+          />
+        </div>
+        <Card className="border-[#ec9347]/30 bg-white">
           <CardHeader>
-            <CardTitle className="text-yellow-800 flex items-center space-x-2">
+            <CardTitle className="text-[#ec9347] flex items-center space-x-2">
               <Youtube className="h-5 w-5" />
-              <span>No YouTube Channels Found</span>
+              <span>Connect a YouTube Channel</span>
             </CardTitle>
-            <CardDescription className="text-yellow-600">
-              You need to connect your YouTube account and have at least one
-              channel to use this feature.
+            <CardDescription className="text-black/70">
+              {requiresGoogleOAuth
+                ? "Sign in with Google to auto-detect your channels, or search by username."
+                : "We found no channels in your account. Search by username or pick a suggestion."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-              className="border-yellow-300 text-yellow-700 hover:bg-yellow-100"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Check Account Settings
-            </Button>
+          <CardContent className="space-y-6">
+            {/* Suggestions when available */}
+            {suggestions.length > 0 ? (
+              <div>
+                <div className="text-sm font-medium mb-2">
+                  Suggested from your Google account
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {suggestions.map((s) => (
+                    <Card
+                      key={s.id}
+                      className="p-4 flex items-start justify-between"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={s.thumbnail || undefined}
+                            alt={s.title}
+                          />
+                          <AvatarFallback>{s.title?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium line-clamp-1">
+                            {s.title}
+                          </div>
+                          <div className="text-xs text-black/60 line-clamp-1">
+                            {s.description}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => onAddChannel(s.id)}
+                        disabled={adding === s.id}
+                        className="bg-[#ec9347] hover:bg-[#d6813c]"
+                      >
+                        {adding === s.id ? "Adding..." : "Add"}
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Search */}
+            <div className="space-y-2">
+              <Label htmlFor="channelSearch">
+                Or Search channel by name or username
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="channelSearch"
+                  placeholder="e.g. Marques Brownlee"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button
+                  onClick={onSearch}
+                  disabled={searching}
+                  className="bg-[#ec9347] hover:bg-[#d6813c]"
+                >
+                  {searching ? "Searching..." : "Search"}
+                </Button>
+              </div>
+            </div>
+
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {searchResults.map((r) => (
+                  <Card
+                    key={r.id}
+                    className="p-4 flex items-start justify-between"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={r.thumbnail || undefined}
+                          alt={r.title}
+                        />
+                        <AvatarFallback>{r.title?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium line-clamp-1">
+                          {r.title}
+                        </div>
+                        <div className="text-xs text-black/60 line-clamp-1">
+                          {r.description}
+                        </div>
+                        {r.subscriberCount ? (
+                          <div className="text-xs text-black/70 mt-1 flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              <Users className="h-3 w-3 mr-1" />
+                              {formatNumber(String(r.subscriberCount))}
+                            </Badge>
+                            {r.videoCount ? (
+                              <Badge variant="secondary" className="text-xs">
+                                <Video className="h-3 w-3 mr-1" />
+                                {formatNumber(String(r.videoCount))}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => onAddChannel(r.id)}
+                      disabled={adding === r.id}
+                      className="bg-[#ec9347] hover:bg-[#d6813c]"
+                    >
+                      {adding === r.id ? "Adding..." : "Add"}
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -217,7 +441,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {channelsData.channels.map((channel) => (
+            {channelsData?.channels.map((channel) => (
               <Card
                 key={channel.id}
                 className={`cursor-pointer transition-all duration-200 hover:shadow-md ${

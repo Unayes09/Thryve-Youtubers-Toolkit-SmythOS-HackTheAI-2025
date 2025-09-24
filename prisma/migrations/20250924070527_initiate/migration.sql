@@ -1,8 +1,18 @@
 -- CreateEnum
 CREATE TYPE "public"."Status" AS ENUM ('PROCESSING', 'COMPLETED', 'FAILED');
 
--- AlterTable
-ALTER TABLE "public"."User" ADD COLUMN     "credits" BIGINT NOT NULL DEFAULT 10;
+-- CreateTable
+CREATE TABLE "public"."User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT,
+    "name" TEXT,
+    "imageUrl" TEXT,
+    "credits" INTEGER NOT NULL DEFAULT 10,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "public"."Channels" (
@@ -11,9 +21,9 @@ CREATE TABLE "public"."Channels" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "thumbnail" TEXT,
-    "subscriberCount" BIGINT NOT NULL,
-    "videoCount" BIGINT NOT NULL,
-    "viewCount" BIGINT NOT NULL,
+    "subscriberCount" INTEGER NOT NULL,
+    "videoCount" INTEGER NOT NULL,
+    "viewCount" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -101,6 +111,9 @@ CREATE TABLE "public"."ReelAssets" (
 
     CONSTRAINT "ReelAssets_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Channels_userId_key" ON "public"."Channels"("userId");

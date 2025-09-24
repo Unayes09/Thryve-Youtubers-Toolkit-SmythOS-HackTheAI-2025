@@ -8,11 +8,10 @@ export default async function Page() {
     redirect("/sign-in?error=not_authenticated");
   }
 
-  const res = await syncUserToBackend();
+  const res = await (await syncUserToBackend()).json();
   if (!res.ok) {
-    const error = await res.json();
     redirect(
-      "/sign-in?error=" + encodeURIComponent(error.error || "sync_failed")
+      "/sign-in?error=" + encodeURIComponent(res.error || "sync_failed")
     );
   }
 

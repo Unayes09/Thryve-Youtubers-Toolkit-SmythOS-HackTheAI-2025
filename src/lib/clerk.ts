@@ -1,11 +1,26 @@
-import { auth } from "@clerk/nextjs/server";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 
-export async function getClerkJwt(): Promise<string | null> {
-  const session = await auth();
-  if (!session || !session.sessionId) return null;
-  // Clerk provides a session token for backend verification
-  const { sessionClaims } = session;
-  if (!sessionClaims) return null;
-  // In Next 15 Clerk, use getToken on client; here we keep a server util placeholder
-  return null;
+// Returns the Google OAuth access token for the currently signed-in Clerk user.
+// Returns null if the user is unauthenticated or doesn't have Google connected.
+export async function getGoogleAccessToken(): Promise<string | null> {
+  const user = await currentUser();
+  if (!user) return null;
+  try {
+    const client = await clerkClient();
+    const tokens = await client.users.getUserOauthAccessToken(
+      user.id,
+      "google"
+    );
+    const token = tokens?.data?.[0]?.token ?? null;
+    return token || null;
+  } catch (error) {
+    console.error("Failed to retrieve Google access token from Clerk:", error);
+    return null;
+  }
+}
+
+export async function requireUserId(): Promise<string> {
+  const user = await currentUser();
+  if (!user) throw new Error("Unauthorized");
+  return user.id;
 }
