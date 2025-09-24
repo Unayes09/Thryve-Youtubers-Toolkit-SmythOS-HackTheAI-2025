@@ -46,9 +46,9 @@ const navItems: NavItem[] = [
     icon: ImageIcon,
   },
   { label: "Reels Maker", href: "/dashboard/reels", icon: Film },
-  { label: "CTC Check", href: "/dashboard/ctc", icon: CheckCircle2 },
   { label: "Similar Channels", href: "/dashboard/similar", icon: Users },
   { label: "Audio Generator", href: "/dashboard/audio", icon: Mic },
+  { label: "CTR Predictor", href: "/dashboard/ctr", icon: CheckCircle2 },
   { label: "Recharge", href: "/dashboard/recharge", icon: Wallet },
 ];
 

@@ -131,14 +131,10 @@ export default function ThumbnailsPage() {
     <DashboardShell>
       <div className="space-y-6">
         {/* Channel selection header */}
-        {isChannelLoading ? (
-          <div className="">
-            <Loader className="animate-spin text-primary" />
-          </div>
-        ) : channels.length > 0 ? (
+        {channels.length > 0 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Thumbnails</CardTitle>
+              <CardTitle>Channels</CardTitle>
               <CardDescription>
                 Select a channel to view completed thumbnails
               </CardDescription>
@@ -177,6 +173,8 @@ export default function ThumbnailsPage() {
               </div>
             </CardContent>
           </Card>
+        ) : isChannelLoading ? (
+          <div className=""></div>
         ) : (
           <Card>
             <CardContent className="p-6">No channels found.</CardContent>
