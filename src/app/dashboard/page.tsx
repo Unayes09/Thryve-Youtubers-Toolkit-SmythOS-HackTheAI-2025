@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -13,18 +13,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  ExternalLink,
-  Play,
-  Users,
-  Eye,
-  Video,
-  Youtube,
-  Settings,
-} from "lucide-react";
+import { ExternalLink, Play, Users, Eye, Video, Youtube } from "lucide-react";
 import { LoadingPage } from "@/components/loading/LoadingPage";
 import Image from "next/image";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Video {
   id: string;
@@ -95,6 +94,10 @@ export default function Dashboard() {
   >([]);
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const existingChannelIds = useMemo(() => {
+    return new Set((channelsData?.channels || []).map((c) => c.id));
+  }, [channelsData]);
 
   useEffect(() => {
     const checkChannels = async () => {
@@ -431,18 +434,32 @@ export default function Dashboard() {
     <DashboardShell>
       <div className="space-y-6">
         {/* Channel Selection */}
-        {channelsData?.channels && channelsData?.channels.length > 1 && (
+        {channelsData?.channels && channelsData?.channels.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Youtube className="h-6 w-6" />
-                <span>Your YouTube Channels</span>
-              </CardTitle>
-              <CardDescription>
-                Select a channel to view its videos and analytics
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Youtube className="h-6 w-6" />
+                    <span>Your YouTube Channels</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Select a channel to view its videos
+                  </CardDescription>
+                </div>
+                <Button
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    setSearchResults([]);
+                    setSearchQuery("");
+                    setAddDialogOpen(true);
+                  }}
+                >
+                  Add Channel
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {channelsData?.channels.map((channel) => (
                   <Card
@@ -488,6 +505,99 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Add Channel Dialog */}
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add another channel</DialogTitle>
+              <DialogDescription>
+                Search by channel name or username and add it to your account.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="e.g. Marques Brownlee"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button
+                  onClick={onSearch}
+                  disabled={searching}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {searching ? "Searching..." : "Search"}
+                </Button>
+              </div>
+              {searchResults.filter((r) => !existingChannelIds.has(r.id))
+                .length > 0 ? (
+                <div className="grid grid-cols-1 gap-3 max-h-80 overflow-auto">
+                  {searchResults
+                    .filter((r) => !existingChannelIds.has(r.id))
+                    .map((r) => (
+                      <Card
+                        key={r.id}
+                        className="p-3 flex items-start justify-between"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage
+                              src={r.thumbnail || undefined}
+                              alt={r.title}
+                            />
+                            <AvatarFallback>
+                              {r.title?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium line-clamp-1">
+                              {r.title}
+                            </div>
+                            <div className="text-xs text-black/60 line-clamp-1">
+                              {r.description}
+                            </div>
+                            {r.subscriberCount || r.videoCount ? (
+                              <div className="text-xs text-black/70 mt-1 flex items-center gap-2">
+                                {r.subscriberCount ? (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    <Users className="h-3 w-3 mr-1" />
+                                    {formatNumber(String(r.subscriberCount))}
+                                  </Badge>
+                                ) : null}
+                                {r.videoCount ? (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    <Video className="h-3 w-3 mr-1" />
+                                    {formatNumber(String(r.videoCount))}
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={async () => {
+                            await onAddChannel(r.id);
+                            setAddDialogOpen(false);
+                          }}
+                          disabled={adding === r.id}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          {adding === r.id ? "Adding..." : "Add"}
+                        </Button>
+                      </Card>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {videosLoading && (
           <div className="flex flex-col items-center justify-center min-h-[70vh]">
