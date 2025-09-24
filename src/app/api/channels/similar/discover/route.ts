@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import { deductCredits } from "@/lib/credit-utils";
 
 export const maxDuration = 120;
 
@@ -33,26 +34,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Deduct credits atomically (20 credits)
-    const COST = 20;
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        credits: {
-          decrement: COST,
-        },
-      },
-    });
-    if (updatedUser.credits < 0) {
-      // revert deduction if negative; use a compensating update
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { credits: { increment: COST } },
-      });
-      return NextResponse.json(
-        { error: "Insufficient credits" },
-        { status: 402 }
-      );
+    // Deduct credits atomically
+    const creditResult = await deductCredits(
+      user.id,
+      "SIMILAR_CHANNELS_DISCOVER"
+    );
+    if (!creditResult.success) {
+      return NextResponse.json({ error: creditResult.error }, { status: 402 });
     }
 
     // Call external agent (may take up to ~100s)

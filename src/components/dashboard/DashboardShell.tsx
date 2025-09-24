@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { Badge } from "@/components/ui/badge";
+import { CreditCostsDropdown } from "@/components/ui/credit-costs-dropdown";
 import {
   Sidebar,
   SidebarContent,
@@ -132,9 +133,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-3">
               {typeof credits === "number" ? (
-                <Badge className="bg-primary text-white rounded-full px-3 py-1">
-                  Credits: {credits}
-                </Badge>
+                <CreditCostsDropdown credits={credits} />
               ) : null}
               <UserButton />
             </div>

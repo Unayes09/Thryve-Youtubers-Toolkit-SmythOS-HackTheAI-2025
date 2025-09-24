@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/clerk";
+import { deductCredits } from "@/lib/credit-utils";
 
 export async function POST(req: Request) {
   try {
@@ -21,6 +22,12 @@ export async function POST(req: Request) {
     });
     if (!channel || channel.userId !== userId) {
       return NextResponse.json({ error: "Invalid channelId" }, { status: 404 });
+    }
+
+    // Deduct credits atomically
+    const creditResult = await deductCredits(userId, "CTR_PREDICT");
+    if (!creditResult.success) {
+      return NextResponse.json({ error: creditResult.error }, { status: 402 });
     }
 
     const targetUrl = process.env.SMYTHOS_AGENT1;

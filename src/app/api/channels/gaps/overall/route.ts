@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import { deductCredits } from "@/lib/credit-utils";
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
         { error: "Channel not found for current user" },
         { status: 404 }
       );
+    }
+
+    // Deduct credits atomically
+    const creditResult = await deductCredits(user.id, "GAPS_OVERALL");
+    if (!creditResult.success) {
+      return NextResponse.json({ error: creditResult.error }, { status: 402 });
     }
 
     const agentBase = process.env.SMYTHOS_AGENT2;

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { google } from "googleapis";
+import { deductCredits } from "@/lib/credit-utils";
 
 export async function GET(req: Request) {
   try {
@@ -63,6 +64,12 @@ export async function POST(req: Request) {
     const channel = await prisma.channels.findUnique({ where: { channelId } });
     if (!channel || channel.userId !== user.id) {
       return NextResponse.json({ error: "Invalid channelId" }, { status: 404 });
+    }
+
+    // Deduct credits atomically
+    const creditResult = await deductCredits(user.id, "THUMBNAIL_GENERATE");
+    if (!creditResult.success) {
+      return NextResponse.json({ error: creditResult.error }, { status: 402 });
     }
 
     // Resolve images: use provided, otherwise fetch last 3 video thumbnails

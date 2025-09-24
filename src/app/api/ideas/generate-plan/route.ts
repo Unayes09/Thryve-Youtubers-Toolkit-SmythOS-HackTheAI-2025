@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/clerk";
+import { deductCredits } from "@/lib/credit-utils";
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +24,12 @@ export async function POST(req: Request) {
 
     if (!idea || idea.channel.userId !== userId) {
       return NextResponse.json({ error: "Idea not found" }, { status: 404 });
+    }
+
+    // Deduct credits atomically
+    const creditResult = await deductCredits(userId, "IDEAS_GENERATE_PLAN");
+    if (!creditResult.success) {
+      return NextResponse.json({ error: creditResult.error }, { status: 402 });
     }
 
     const targetUrl = process.env.SMYTHOS_AGENT1;
