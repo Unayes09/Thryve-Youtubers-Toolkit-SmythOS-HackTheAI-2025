@@ -38,6 +38,7 @@ import {
   Tag,
   Sparkles,
   Loader,
+  Image as ImageIcon,
 } from "lucide-react";
 
 interface Channel {
@@ -130,6 +131,9 @@ export default function VideoIdeasPage() {
     useState<VideoIdea | null>(null);
   const [generatingSEO, setGeneratingSEO] = useState(false);
   const [selectedIdeaForSEO, setSelectedIdeaForSEO] =
+    useState<VideoIdea | null>(null);
+  const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
+  const [selectedIdeaForThumbnail, setSelectedIdeaForThumbnail] =
     useState<VideoIdea | null>(null);
 
   useEffect(() => {
@@ -458,6 +462,50 @@ export default function VideoIdeasPage() {
     } finally {
       setGeneratingSEO(false);
       setSelectedIdeaForSEO(null);
+    }
+  };
+
+  const handleGenerateThumbnail = async (idea: VideoIdea) => {
+    if (!idea.title) {
+      toast.error("Idea must have a title to generate thumbnail");
+      return;
+    }
+
+    if (!selectedChannelId) {
+      toast.error("Please select a channel first");
+      return;
+    }
+
+    try {
+      setGeneratingThumbnail(true);
+      setSelectedIdeaForThumbnail(idea);
+
+      const res = await fetch("/api/thumbnails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: selectedChannelId,
+          prompt: idea.title,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to generate thumbnail");
+      }
+
+      toast.success(
+        "Thumbnail generation started! Check the thumbnails page to see progress."
+      );
+    } catch (err) {
+      console.error("Generate thumbnail error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to generate thumbnail"
+      );
+    } finally {
+      setGeneratingThumbnail(false);
+      setSelectedIdeaForThumbnail(null);
     }
   };
 
@@ -881,6 +929,23 @@ export default function VideoIdeasPage() {
                               <Loader className="h-4 w-4 animate-spin" />
                             ) : (
                               <Tag className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateThumbnail(idea)}
+                            disabled={
+                              generatingThumbnail &&
+                              selectedIdeaForThumbnail?.id === idea.id
+                            }
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          >
+                            {generatingThumbnail &&
+                            selectedIdeaForThumbnail?.id === idea.id ? (
+                              <Loader className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ImageIcon className="h-4 w-4" />
                             )}
                           </Button>
                           <Button
