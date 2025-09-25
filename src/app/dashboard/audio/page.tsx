@@ -81,7 +81,6 @@ export default function AudioGenerationPage() {
   const [audioAssets, setAudioAssets] = useState<AudioAsset[]>([]);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [speechText, setSpeechText] = useState("");
-  const [voiceSampleUrl, setVoiceSampleUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
 
@@ -185,8 +184,8 @@ export default function AudioGenerationPage() {
   };
 
   const handleGenerateSpeech = async () => {
-    if (!speechText.trim() || !voiceSampleUrl || !selectedChannelId) {
-      toast.error("Please provide both speech text and voice sample");
+    if (!speechText.trim() || !selectedChannelId) {
+      toast.error("Please provide speech text");
       return;
     }
 
@@ -198,7 +197,6 @@ export default function AudioGenerationPage() {
         body: JSON.stringify({
           channelId: selectedChannelId,
           text: speechText.trim(),
-          refAudioUrl: voiceSampleUrl,
         }),
       });
 
@@ -213,7 +211,6 @@ export default function AudioGenerationPage() {
       );
       setGenerateModalOpen(false);
       setSpeechText("");
-      setVoiceSampleUrl(null);
 
       // Refresh the audio assets list
       if (selectedChannelId) {
@@ -342,14 +339,14 @@ export default function AudioGenerationPage() {
                 <div>
                   <CardTitle className="flex items-center space-x-2">
                     <Music className="h-6 w-6" />
-                    <span>Processed Audio</span>
+                    <span>Generated Audio</span>
                   </CardTitle>
                   <CardDescription>
                     {audioLoading
                       ? "Loading audio assets..."
                       : audioAssets.length === 0
-                      ? "No processed audio files yet"
-                      : `${audioAssets.length} processed audio file${
+                      ? "No generated audio files yet"
+                      : `${audioAssets.length} generated audio file${
                           audioAssets.length === 1 ? "" : "s"
                         } found`}
                   </CardDescription>
@@ -377,8 +374,9 @@ export default function AudioGenerationPage() {
                     No processed audio files yet
                   </div>
                   <div className="text-sm text-black/60 max-w-md">
-                    Upload audio files and they will appear here once processed.
-                    You can also generate speech using AI.
+                    Generate speech using AI with Rachel's voice and emotional
+                    tones. Your generated audio files will appear here once
+                    ready.
                   </div>
                   <Button
                     onClick={() => setGenerateModalOpen(true)}
@@ -467,88 +465,138 @@ export default function AudioGenerationPage() {
 
       {/* Generate Speech Modal */}
       <Dialog open={generateModalOpen} onOpenChange={setGenerateModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Mic className="h-5 w-5" />
-              <span>Generate Speech</span>
+              <span>Generate Speech with Rachel</span>
             </DialogTitle>
             <DialogDescription>
-              Upload a voice sample and enter the text you want to convert to
-              speech.
+              Enter your text and add emotional tones using the special tags.
+              Rachel will generate natural-sounding speech.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <Label htmlFor="speech-text">Speech Text</Label>
+              <Label htmlFor="speech-text" className="text-base font-medium">
+                Speech Text
+              </Label>
               <Textarea
                 id="speech-text"
-                placeholder="Enter the text you want to convert to speech..."
+                placeholder="Enter your text here... Use tone tags like [laughs], [whispers], [excited] to add emotion..."
                 value={speechText}
                 onChange={(e) => setSpeechText(e.target.value)}
-                className="mt-1"
-                rows={4}
+                className="mt-2 min-h-[120px]"
+                rows={5}
               />
+              <div className="mt-2 text-sm text-gray-600">
+                <strong>Example:</strong> [applause] Thank you all for coming
+                tonight! [gunshot] What was that?
+              </div>
             </div>
 
             <div>
-              <Label>Voice Sample</Label>
-              {voiceSampleUrl ? (
-                <div className="mt-2 p-3 border rounded-lg bg-green-50">
-                  <div className="flex items-center space-x-2 text-green-700">
-                    <Upload className="h-4 w-4" />
-                    <span className="text-sm">
-                      Voice sample uploaded successfully
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2">
-                  <UploadButton
-                    endpoint="audioFile"
-                    onUploadBegin={() => {
-                      toast.info("Uploading audio...");
-                    }}
-                    onClientUploadComplete={(res) => {
-                      if (res && res[0]) {
-                        setVoiceSampleUrl(res[0].ufsUrl);
-                        toast.success("Voice sample uploaded successfully");
+              <Label className="text-base font-medium mb-3 block">
+                Available Tones
+              </Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {[
+                  { tag: "[laughs]", desc: "Laughing" },
+                  { tag: "[laughs harder]", desc: "Harder laugh" },
+                  { tag: "[starts laughing]", desc: "Start laughing" },
+                  { tag: "[wheezing]", desc: "Wheezing laugh" },
+                  { tag: "[whispers]", desc: "Whispering" },
+                  { tag: "[sighs]", desc: "Sighing" },
+                  { tag: "[exhales]", desc: "Exhaling" },
+                  { tag: "[sarcastic]", desc: "Sarcastic tone" },
+                  { tag: "[curious]", desc: "Curious tone" },
+                  { tag: "[excited]", desc: "Excited tone" },
+                  { tag: "[crying]", desc: "Crying" },
+                  { tag: "[snorts]", desc: "Snorting" },
+                  { tag: "[mischievously]", desc: "Mischievous" },
+                ].map((tone) => (
+                  <Button
+                    key={tone.tag}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start text-left h-auto p-2"
+                    onClick={() => {
+                      const textarea = document.getElementById(
+                        "speech-text"
+                      ) as HTMLTextAreaElement;
+                      if (textarea) {
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const text = speechText;
+                        const before = text.substring(0, start);
+                        const after = text.substring(end);
+                        setSpeechText(before + tone.tag + " " + after);
+                        // Set cursor position after the inserted tag
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(
+                            start + tone.tag.length + 1,
+                            start + tone.tag.length + 1
+                          );
+                        }, 0);
                       }
                     }}
-                    onUploadError={(error) => {
-                      console.error(error);
-                      toast.error("Failed to upload voice sample");
-                    }}
-                    appearance={{
-                      button:
-                        "bg-[#ec9347]! hover:bg-[#ec9347]/90! text-[#2d2d2b]! p-0 m-0 text-sm rounded-md",
-                      clearBtn:
-                        "bg-[#ec9347]! hover:bg-[#ec9347]/90! text-[#2d2d2b]! p-0 m-0 text-sm rounded-md",
-                    }}
-                    content={{
-                      button: "Choose Files",
-                      allowedContent: "Audio up to 8MB",
-                    }}
-                  />
+                  >
+                    <div>
+                      <div className="font-mono text-xs">{tone.tag}</div>
+                      <div className="text-xs text-gray-500">{tone.desc}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-2">
+                <div className="text-blue-600 mt-0.5">
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-4">
             <Button
               variant="outline"
-              onClick={() => setGenerateModalOpen(false)}
+              onClick={() => {
+                setGenerateModalOpen(false);
+                setSpeechText("");
+              }}
             >
               Cancel
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90"
               onClick={handleGenerateSpeech}
-              disabled={!speechText.trim() || !voiceSampleUrl || uploading}
+              disabled={!speechText.trim() || uploading}
             >
-              {uploading ? "Generating..." : "Generate Speech"}
+              {uploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Mic className="h-4 w-4 mr-2" />
+                  Generate Speech
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

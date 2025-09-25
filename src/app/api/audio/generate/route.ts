@@ -7,11 +7,11 @@ export async function POST(req: Request) {
   try {
     const userId = await requireUserId();
     const body = await req.json();
-    const { channelId, text, refAudioUrl } = body || {};
+    const { channelId, text } = body || {};
 
-    if (!channelId || !text || !refAudioUrl) {
+    if (!channelId || !text) {
       return NextResponse.json(
-        { error: "channelId, text, and refAudioUrl are required" },
+        { error: "channelId and text are required" },
         { status: 400 }
       );
     }
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     const payload = {
       text,
-      ref_audio_url: refAudioUrl,
+      voice: "Rachel",
       fal_webhook: process.env.FAL_WEBHOOK || "",
     } as const;
 
