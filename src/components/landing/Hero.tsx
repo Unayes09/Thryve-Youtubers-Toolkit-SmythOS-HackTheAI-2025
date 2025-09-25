@@ -15,14 +15,18 @@ export function Hero() {
         >
           <motion.h1
             variants={fadeUp}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight"
             style={{ color: "#2d2d2b" }}
           >
-            From idea to impact, effortlessly.
+            From idea to{" "}
+            <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              impact
+            </span>
+            , effortlessly.
           </motion.h1>
           <motion.p
             variants={fadeUp}
-            className="text-lg text-black/70 max-w-prose"
+            className="text-lg sm:text-xl text-gray-600 max-w-prose leading-relaxed"
           >
             AI-first workflow to fetch videos, generate ideas, craft thumbnails,
             and scale your channel.
@@ -34,10 +38,12 @@ export function Hero() {
             <motion.a
               href="/sign-up"
               aria-label="Get Started for Free"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-full text-white focus-visible:outline-2 focus-visible:outline-offset-2"
-              style={{ backgroundColor: "#ec9347" }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center justify-center px-8 py-4 rounded-full text-white font-semibold text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-xl hover:shadow-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 transition-all duration-200"
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(236, 147, 71, 0.3)",
+              }}
+              whileTap={{ scale: 0.95 }}
             >
               Get Started — Free
             </motion.a>
@@ -53,15 +59,15 @@ export function Hero() {
           className="relative"
           aria-hidden
         >
-          <div className="absolute -inset-6 bg-[#ec9347]/10 rounded-3xl blur-2xl" />
-          <div className="relative rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="absolute -inset-8 bg-gradient-to-r from-orange-200/20 via-orange-300/30 to-orange-200/20 rounded-3xl blur-3xl" />
+          <div className="relative rounded-3xl border border-orange-100/50 bg-white/80 backdrop-blur-sm p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
               <Image src="/logo.png" alt="Thryve" width={96} height={96} />
-              <span className="text-sm font-medium">
+              <span className="text-sm font-semibold text-gray-700 bg-gradient-to-r from-orange-50 to-orange-100 px-3 py-2 rounded-full">
                 YouTube Fetch → Transcripts → Thumbnails → Reels
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {/* Video Thumbnails */}
               <motion.div
                 className="relative h-20 rounded-md bg-gradient-to-br from-red-500/50 to-red-600/80 flex items-center justify-center group"

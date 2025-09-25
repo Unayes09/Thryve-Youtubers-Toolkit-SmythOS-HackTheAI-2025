@@ -19,7 +19,7 @@ model User {
   email     String?    @unique
   name      String?
   imageUrl  String?
-  credits   Int     @default(10)
+  credits   Int     @default(50)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   channels  Channels[]

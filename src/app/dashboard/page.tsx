@@ -227,6 +227,7 @@ export default function Dashboard() {
           })),
           totalChannels: (checkData.channels || []).length,
         } as ChannelsResponse;
+        window.location.reload();
         setHasChannels(true);
         setChannelsData(mapped);
         setSelectedChannelId(mapped.channels[0]?.id ?? null);

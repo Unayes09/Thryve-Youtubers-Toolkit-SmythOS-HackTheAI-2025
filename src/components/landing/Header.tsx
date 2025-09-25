@@ -39,8 +39,10 @@ export function Header() {
       variants={scaleIn}
       initial="hidden"
       animate="visible"
-      className={`sticky top-0 z-50 w-full backdrop-blur ${
-        scrolled ? "bg-white/70 shadow-sm" : "bg-white/40"
+      className={`sticky top-0 z-50 w-full backdrop-blur-md transition-all duration-300 ${
+        scrolled
+          ? "bg-white/80 shadow-lg border-b border-orange-100/50"
+          : "bg-white/50 shadow-sm"
       }`}
       aria-label="Primary"
     >
@@ -61,7 +63,7 @@ export function Header() {
 
         <nav
           aria-label="Main"
-          className="hidden md:flex items-center gap-6 text-sm"
+          className="hidden md:flex items-center gap-8 text-sm font-medium"
         >
           {[
             { href: "#features", label: "Features" },
@@ -71,22 +73,22 @@ export function Header() {
             <a
               key={item.href}
               href={item.href}
-              className="relative group focus:outline-none"
+              className="relative group focus:outline-none focus:ring-2 focus:ring-orange-200 focus:ring-offset-2 rounded-lg px-2 py-1 transition-all duration-200 hover:text-orange-600"
             >
-              <span className="px-1">{item.label}</span>
-              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#ec9347] group-hover:w-full transition-all duration-200" />
+              <span className="relative z-10 px-1">{item.label}</span>
+              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-orange-400 to-orange-500 group-hover:w-full transition-all duration-300 ease-out" />
+              <span className="absolute inset-0 bg-gradient-to-r from-orange-50 to-orange-100/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </a>
           ))}
           <Link
             href="/sign-in"
-            className="px-4 py-2 rounded-full border border-black/10 hover:border-transparent bg-white hover:bg-black/5 transition-colors"
+            className="px-6 py-2.5 rounded-full border border-gray-200 hover:border-orange-200 bg-white hover:bg-orange-50/50 transition-all duration-200 font-medium text-gray-700 hover:text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:ring-offset-2"
           >
             Sign in
           </Link>
           <Link
             href="/sign-up"
-            className="px-4 py-2 rounded-full text-white"
-            style={{ backgroundColor: "#ec9347" }}
+            className="px-6 py-2.5 rounded-full text-white font-medium bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2"
           >
             Get Started — Free
           </Link>
@@ -94,7 +96,7 @@ export function Header() {
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-black/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#ec9347]"
+          className="md:hidden p-2 rounded-lg hover:bg-orange-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:ring-offset-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle mobile menu"
           aria-expanded={mobileMenuOpen}
@@ -130,8 +132,8 @@ export function Header() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          className="md:hidden bg-white/95 backdrop-blur-sm border-t border-black/10"
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="md:hidden bg-white/95 backdrop-blur-md border-t border-orange-100/50 shadow-lg"
         >
           <nav
             className="container mx-auto px-4 py-4 space-y-4"
@@ -145,24 +147,23 @@ export function Header() {
               <a
                 key={item.href}
                 href={item.href}
-                className="block py-3 px-2 text-base font-medium text-gray-900 hover:text-[#ec9347] transition-colors focus:outline-none focus:ring-2 focus:ring-[#ec9347] focus:ring-offset-2 rounded-lg"
+                className="block py-3 px-4 text-base font-medium text-gray-900 hover:text-orange-600 hover:bg-orange-50/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:ring-offset-2 rounded-lg"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </a>
             ))}
-            <div className="pt-4 border-t border-black/10 space-y-3">
+            <div className="pt-4 border-t border-orange-100/50 space-y-3">
               <Link
                 href="/sign-in"
-                className="block w-full text-center px-4 py-3 rounded-full border border-black/10 hover:border-transparent bg-white hover:bg-black/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#ec9347] focus:ring-offset-2"
+                className="block w-full text-center px-4 py-3 rounded-full border border-gray-200 hover:border-orange-200 bg-white hover:bg-orange-50/50 transition-all duration-200 font-medium text-gray-700 hover:text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:ring-offset-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
-                className="block w-full text-center px-4 py-3 rounded-full text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#ec9347] focus:ring-offset-2"
-                style={{ backgroundColor: "#ec9347" }}
+                className="block w-full text-center px-4 py-3 rounded-full text-white font-medium bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Get Started — Free

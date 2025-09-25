@@ -59,7 +59,7 @@ function PaymentForm({
           throw new Error(data?.error || "Failed to credit user");
         }
         onCredited();
-        router.push("/dashboard?checkout=success");
+        window.location.href = "/dashboard";
       }
     } catch (e) {
       console.error(e);

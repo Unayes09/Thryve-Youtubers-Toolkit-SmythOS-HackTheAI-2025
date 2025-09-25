@@ -11,7 +11,7 @@ const poppins = Poppins({
 });
 
 const siteName = "Thryve";
-const siteTitle = "Thryve — From idea to impact, effortlessly.";
+const siteTitle = "Thryve | From idea to impact, effortlessly.";
 const siteDescription =
   "AI-first workflow to fetch videos, generate ideas, craft thumbnails, and scale your channel.";
 const siteUrl = "https://thryve.app";
