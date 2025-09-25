@@ -795,19 +795,27 @@ export default function VideoIdeasPage() {
                     variant="outline"
                     onClick={() => setConfirmGenerateOpen(true)}
                     disabled={generatingIdeas}
+                    className="group relative bg-white border border-indigo-300 hover:border-indigo-400 hover:bg-indigo-50 shadow-sm hover:shadow-md transition-all duration-300 disabled:hover:shadow-sm"
                   >
-                    {generatingIdeas ? (
-                      <>
-                        <Loader className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        AI Generate Ideas
-                      </>
-                    )}
+                    <div className="relative z-10 flex items-center">
+                      {generatingIdeas ? (
+                        <>
+                          <Loader className="h-4 w-4 mr-2 animate-spin text-indigo-600 group-hover:text-purple-600 transition-colors duration-300" />
+                          <span className="font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:via-pink-600 group-hover:to-indigo-600 transition-all duration-500">
+                            Generating...
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2 text-indigo-600 group-hover:text-purple-600 group-hover:animate-pulse group-hover:scale-110 transition-all duration-300" />
+                          <span className="font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:via-pink-600 group-hover:to-indigo-600 transition-all duration-500">
+                            AI Generate Ideas
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </Button>
+
                   <Button
                     className="bg-primary hover:bg-primary/90"
                     onClick={openCreateModal}
