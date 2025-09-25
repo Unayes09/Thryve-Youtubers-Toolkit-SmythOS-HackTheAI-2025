@@ -98,7 +98,7 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
     
 -   **Idea workflow**:
     
-    -   Planning
+    -   Planning  (Analyze personal calender and based on the analysis + video structure  ===> plan the vide)
         
     -   Editing
         
