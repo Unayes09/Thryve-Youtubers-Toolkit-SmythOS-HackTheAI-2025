@@ -108,8 +108,23 @@ export const useFFmpeg = () => {
         // Read the output file
         const data = await ffmpeg.readFile("output.mp4");
 
-        // Create blob from the output
-        const blob = new Blob([data], { type: "video/mp4" });
+        // Create blob from the output - ensure we have proper ArrayBuffer
+        let blobData: BlobPart;
+        if (data instanceof Uint8Array) {
+          // Create a new ArrayBuffer from the Uint8Array
+          const newArrayBuffer = new ArrayBuffer(data.length);
+          const newUint8Array = new Uint8Array(newArrayBuffer);
+          newUint8Array.set(data);
+          blobData = newArrayBuffer;
+        } else {
+          // Convert string to Uint8Array then to ArrayBuffer
+          const uint8Array = new Uint8Array(data.length);
+          for (let i = 0; i < data.length; i++) {
+            uint8Array[i] = data.charCodeAt(i);
+          }
+          blobData = uint8Array.buffer;
+        }
+        const blob = new Blob([blobData], { type: "video/mp4" });
 
         // Clean up files
         await ffmpeg.deleteFile("input.mp4");
