@@ -36,3 +36,17 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 - **AI/ML**: Vector embeddings + LLMs for transcripts, summaries, and idea generation
 - **Payments**: [Stripe](https://stripe.com/) for subscriptions
 - **Storage**: [Uploadthing](https://uploadthing.com/) for storage system.
+
+
+
+
+
+# ER Diagram:
+
+<img src="images/Thryve ERD.png">
+
+
+# End to End Activity Diagram:
+
+
+<img src="images/End to End Activity Diagram.png">
