@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const userId = await requireUserId();
     const body = await req.json();
-    const { ideaId, context } = body || {};
+    const { ideaId, context, scheduleData } = body || {};
 
     if (!ideaId || !context) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
 
     const payload = {
       context,
+      scheduleData: scheduleData || null,
     } as const;
 
     const resp = await fetch(targetUrl + "/Video_Plan", {

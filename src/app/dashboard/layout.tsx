@@ -30,6 +30,7 @@ import {
   Wallet,
   Users,
   Mic,
+  Calendar,
 } from "lucide-react";
 import { LoadingPage } from "@/components/loading/LoadingPage";
 
@@ -51,6 +52,7 @@ const navItems: NavItem[] = [
   { label: "Similar Channels", href: "/dashboard/similar", icon: Users },
   { label: "Audio Generator", href: "/dashboard/audio", icon: Mic },
   { label: "CTR Predictor", href: "/dashboard/ctr", icon: CheckCircle2 },
+  // { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { label: "Recharge", href: "/dashboard/recharge", icon: Wallet },
 ];
 

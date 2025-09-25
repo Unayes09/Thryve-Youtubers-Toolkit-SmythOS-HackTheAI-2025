@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { LoadingPage } from "@/components/loading/LoadingPage";
 import { toast } from "sonner";
+import { CalendarScheduleModal } from "@/components/ui/calendar-schedule-modal";
 import {
   Lightbulb,
   Plus,
@@ -133,6 +134,9 @@ export default function VideoIdeasPage() {
     useState<VideoIdea | null>(null);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [selectedIdeaForThumbnail, setSelectedIdeaForThumbnail] =
+    useState<VideoIdea | null>(null);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [selectedIdeaForCalendar, setSelectedIdeaForCalendar] =
     useState<VideoIdea | null>(null);
 
   useEffect(() => {
@@ -380,16 +384,28 @@ export default function VideoIdeasPage() {
       return;
     }
 
+    // Open calendar modal first
+    setSelectedIdeaForCalendar(idea);
+    setCalendarModalOpen(true);
+  };
+
+  const handleCalendarConfirm = async (scheduleData: {
+    dateRange: { start: string; end: string };
+    freeTime: Array<{ start: string; end: string; duration: number }>;
+  }) => {
+    if (!selectedIdeaForCalendar) return;
+
     try {
       setGeneratingPlan(true);
-      setSelectedIdeaForPlan(idea);
+      setSelectedIdeaForPlan(selectedIdeaForCalendar);
 
       const res = await fetch("/api/ideas/generate-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ideaId: idea.id,
-          context: `${idea.title} - ${idea.description}`,
+          ideaId: selectedIdeaForCalendar.id,
+          context: `${selectedIdeaForCalendar.title} - ${selectedIdeaForCalendar.description}`,
+          scheduleData: scheduleData,
         }),
       });
 
@@ -401,7 +417,7 @@ export default function VideoIdeasPage() {
 
       // Update the idea with the new plan
       const updatedIdeas = videoIdeas.map((i) =>
-        i.id === idea.id ? { ...i, plan: data.plan } : i
+        i.id === selectedIdeaForCalendar.id ? { ...i, plan: data.plan } : i
       );
       setVideoIdeas(updatedIdeas);
 
@@ -409,7 +425,7 @@ export default function VideoIdeasPage() {
       setCurrentPlan(data.planData);
       setPlanModalOpen(true);
 
-      toast.success("Video plan generated successfully!");
+      toast.success("Video plan generated successfully with your schedule!");
     } catch (err) {
       console.error("Generate plan error:", err);
       toast.error(
@@ -418,6 +434,7 @@ export default function VideoIdeasPage() {
     } finally {
       setGeneratingPlan(false);
       setSelectedIdeaForPlan(null);
+      setSelectedIdeaForCalendar(null);
     }
   };
 
@@ -914,12 +931,13 @@ export default function VideoIdeasPage() {
                                 selectedIdeaForPlan?.id === idea.id
                               }
                               className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Create production plan with calendar scheduling"
                             >
                               {generatingPlan &&
                               selectedIdeaForPlan?.id === idea.id ? (
                                 <Loader className="h-4 w-4 animate-spin" />
                               ) : (
-                                <Plus className="h-4 w-4" />
+                                <Calendar className="h-4 w-4" />
                               )}
                             </Button>
                           )}
@@ -1225,6 +1243,17 @@ export default function VideoIdeasPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Calendar Schedule Modal */}
+      <CalendarScheduleModal
+        isOpen={calendarModalOpen}
+        onClose={() => {
+          setCalendarModalOpen(false);
+          setSelectedIdeaForCalendar(null);
+        }}
+        onConfirm={handleCalendarConfirm}
+        ideaTitle={selectedIdeaForCalendar?.title || ""}
+      />
     </div>
   );
 }
