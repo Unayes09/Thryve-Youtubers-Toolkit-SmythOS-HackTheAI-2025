@@ -114,15 +114,24 @@ export async function POST(req: Request) {
       select: { id: true, generatorId: true },
     });
 
-    // Create reel assets for uploaded images
+    // Create reel assets for uploaded media
     if (images && images.length > 0) {
-      const reelAssets = images.map((imageUrl: string) => ({
-        reelId: createdReel.id,
-        generatorId: `reel_asset_${crypto.randomUUID()}`,
-        status: "PROCESSING" as const,
-        url: imageUrl,
-        assetType: "image",
-      }));
+      const reelAssets = images.map((mediaUrl: string) => {
+        // Determine asset type based on URL extension
+        const isVideo =
+          mediaUrl.includes(".mp4") ||
+          mediaUrl.includes(".webm") ||
+          mediaUrl.includes(".mov") ||
+          mediaUrl.includes(".avi");
+
+        return {
+          reelId: createdReel.id,
+          generatorId: `reel_asset_${crypto.randomUUID()}`,
+          status: "PROCESSING" as const,
+          url: mediaUrl,
+          assetType: isVideo ? "mp4" : "image",
+        };
+      });
 
       await prisma.reelAssets.createMany({
         data: reelAssets,

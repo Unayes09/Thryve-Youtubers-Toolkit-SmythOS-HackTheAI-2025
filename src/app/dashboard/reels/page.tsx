@@ -104,6 +104,9 @@ export default function ReelsPage() {
   const [currentAssetIndex, setCurrentAssetIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [playingReel, setPlayingReel] = useState<string | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
 
   // Form states
   const [reelTitle, setReelTitle] = useState("");
@@ -190,11 +193,35 @@ export default function ReelsPage() {
   const handlePlayPause = (reel: Reel) => {
     if (playingReel === reel.id) {
       setPlayingReel(null);
+      setViewModalOpen(false);
+      // Stop video when closing
+      if (videoRef) {
+        videoRef.pause();
+        videoRef.currentTime = 0;
+      }
     } else {
       setPlayingReel(reel.id);
       setSelectedReel(reel);
       setCurrentAssetIndex(0);
+      setVideoLoading(true);
+      setVideoError(null);
       setViewModalOpen(true);
+
+      // Debug logging
+      console.log("Selected reel:", reel);
+      console.log("Reel URL:", reel.url);
+      console.log("Reel status:", reel.status);
+    }
+  };
+
+  const handleModalClose = () => {
+    setViewModalOpen(false);
+    setPlayingReel(null);
+    setSelectedReel(null);
+    // Stop video when modal is closed
+    if (videoRef) {
+      videoRef.pause();
+      videoRef.currentTime = 0;
     }
   };
 
@@ -257,22 +284,6 @@ export default function ReelsPage() {
       toast.error(err instanceof Error ? err.message : "Failed to create reel");
     } finally {
       setUploading(false);
-    }
-  };
-
-  const nextAsset = () => {
-    if (selectedReel && selectedReel.reelAssets.length > 0) {
-      setCurrentAssetIndex((prev) =>
-        prev < selectedReel.reelAssets.length - 1 ? prev + 1 : 0
-      );
-    }
-  };
-
-  const prevAsset = () => {
-    if (selectedReel && selectedReel.reelAssets.length > 0) {
-      setCurrentAssetIndex((prev) =>
-        prev > 0 ? prev - 1 : selectedReel.reelAssets.length - 1
-      );
     }
   };
 
@@ -468,10 +479,6 @@ export default function ReelsPage() {
                       )}
 
                       <div className="flex items-center justify-between text-xs text-black/60">
-                        <div className="flex items-center space-x-1">
-                          <ImageIcon className="h-3 w-3" />
-                          <span>{reel.reelAssets.length} assets</span>
-                        </div>
                         {reel.videoIdea && (
                           <div className="flex items-center space-x-1">
                             <FileText className="h-3 w-3" />
@@ -567,7 +574,7 @@ export default function ReelsPage() {
             </div>
 
             <div>
-              <Label>Images</Label>
+              <Label>Media Assets</Label>
               <div className="mt-2 space-y-2">
                 {uploadedImages.map((url, index) => (
                   <div
@@ -575,9 +582,20 @@ export default function ReelsPage() {
                     className="p-2 border rounded-lg bg-green-50"
                   >
                     <div className="flex items-center space-x-2 text-green-700">
-                      <ImageIcon className="h-4 w-4" />
+                      {url.includes(".mp4") ||
+                      url.includes(".webm") ||
+                      url.includes(".mov") ? (
+                        <Video className="h-4 w-4" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4" />
+                      )}
                       <span className="text-sm">
-                        Image {index + 1} uploaded
+                        {url.includes(".mp4") ||
+                        url.includes(".webm") ||
+                        url.includes(".mov")
+                          ? "Video"
+                          : "Image"}{" "}
+                        {index + 1} uploaded
                       </span>
                     </div>
                   </div>
@@ -585,17 +603,17 @@ export default function ReelsPage() {
                 <UploadButton
                   endpoint="thumbnailImage"
                   onUploadBegin={() => {
-                    toast.info("Uploading image...");
+                    toast.info("Uploading media...");
                   }}
                   onClientUploadComplete={(res) => {
                     if (res && res[0]) {
                       setUploadedImages((prev) => [...prev, res[0].ufsUrl]);
-                      toast.success("Image uploaded successfully");
+                      toast.success("Media uploaded successfully");
                     }
                   }}
                   onUploadError={(error) => {
                     console.error(error);
-                    toast.error("Failed to upload image");
+                    toast.error("Failed to upload media");
                   }}
                   appearance={{
                     button:
@@ -604,7 +622,7 @@ export default function ReelsPage() {
                       "bg-[#ec9347]! hover:bg-[#ec9347]/90! text-[#2d2d2b]! p-0 m-0 text-sm rounded-md",
                   }}
                   content={{
-                    button: "Add Images",
+                    button: "Add Media",
                     allowedContent: "Images up to 8MB",
                   }}
                 />
@@ -628,87 +646,91 @@ export default function ReelsPage() {
       </Dialog>
 
       {/* View Reel Modal */}
-      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Film className="h-5 w-5" />
-              <span>{selectedReel?.title}</span>
-            </DialogTitle>
-            <DialogDescription>
-              {selectedReel?.description || "View your reel content"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedReel && selectedReel.reelAssets.length > 0 && (
-            <div className="space-y-4">
-              <div className="relative">
-                <div className="aspect-[9/16] bg-black rounded-lg overflow-hidden">
-                  {selectedReel.reelAssets[currentAssetIndex]?.url ? (
-                    <img
-                      src={selectedReel.reelAssets[currentAssetIndex].url!}
-                      alt={`Reel asset ${currentAssetIndex + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      <div className="text-center">
-                        <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm opacity-75">
-                          Asset processing...
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {selectedReel.reelAssets.length > 1 && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2"
-                      onClick={prevAsset}
-                    >
-                      ←
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                      onClick={nextAsset}
-                    >
-                      →
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-black/60">
-                <span>
-                  Asset {currentAssetIndex + 1} of{" "}
-                  {selectedReel.reelAssets.length}
-                </span>
-                <div className="flex space-x-1">
-                  {selectedReel.reelAssets.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentAssetIndex
-                          ? "bg-primary"
-                          : "bg-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => setViewModalOpen(false)}>
-              Close
+      <Dialog open={viewModalOpen} onOpenChange={handleModalClose}>
+        <DialogContent className="max-w-md w-full mx-4 p-0">
+          <div className="relative">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 text-white"
+              onClick={handleModalClose}
+            >
+              ✕
             </Button>
+
+            {/* Video container */}
+            <div className="aspect-[9/16] bg-black relative">
+              {videoLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p className="text-sm">Loading video...</p>
+                  </div>
+                </div>
+              )}
+
+              {videoError ? (
+                <div className="w-full h-full flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <Film className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm opacity-75 mb-2">
+                      Video failed to load
+                    </p>
+                    <p className="text-xs opacity-50">{videoError}</p>
+                  </div>
+                </div>
+              ) : selectedReel?.url ? (
+                <video
+                  key={selectedReel.url}
+                  ref={setVideoRef}
+                  src={selectedReel.url}
+                  className="w-full h-full object-cover"
+                  controls
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onLoadStart={() => {
+                    console.log("Video loading started");
+                    setVideoLoading(true);
+                  }}
+                  onCanPlay={() => {
+                    console.log("Video can play");
+                    setVideoLoading(false);
+                    setVideoError(null);
+                  }}
+                  onError={(e) => {
+                    console.error("Video error:", e);
+                    setVideoLoading(false);
+                    setVideoError("Failed to load video");
+                  }}
+                  onLoadedData={() => {
+                    console.log("Video data loaded");
+                    setVideoLoading(false);
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <Film className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm opacity-75">Reel processing...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Reel info overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <h3 className="text-white font-semibold text-lg mb-1">
+                {selectedReel?.title}
+              </h3>
+              {selectedReel?.description && (
+                <p className="text-white/80 text-sm line-clamp-2">
+                  {selectedReel.description}
+                </p>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
