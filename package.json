@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.32.2",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@prisma/client": "^6.16.2",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.3",

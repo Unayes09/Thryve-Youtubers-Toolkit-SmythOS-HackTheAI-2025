@@ -22,6 +22,7 @@ import {
   Youtube,
   Image as ImageIcon,
   Film,
+  Music,
 } from "lucide-react";
 import { LoadingPage } from "@/components/loading/LoadingPage";
 import {
@@ -36,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
+import { useFFmpeg } from "@/hooks/use-ffmpeg";
 
 interface Channel {
   id: string;
@@ -100,6 +102,7 @@ export default function ReelsPage() {
   const [reels, setReels] = useState<Reel[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [audioModalOpen, setAudioModalOpen] = useState(false);
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
   const [currentAssetIndex, setCurrentAssetIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -107,6 +110,21 @@ export default function ReelsPage() {
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+
+  // Audio blending states
+  const [selectedAudioUrl, setSelectedAudioUrl] = useState<string | null>(null);
+  const [isBlending, setIsBlending] = useState(false);
+  const [blendProgress, setBlendProgress] = useState(0);
+
+  // FFmpeg hook
+  const {
+    blendAudioWithVideo,
+    downloadBlob,
+    isLoading: ffmpegLoading,
+    progress: ffmpegProgress,
+    loadFFmpeg,
+    isLoaded: ffmpegLoaded,
+  } = useFFmpeg();
 
   // Form states
   const [reelTitle, setReelTitle] = useState("");
@@ -173,6 +191,15 @@ export default function ReelsPage() {
     fetchReels();
   }, [selectedChannelId]);
 
+  // Preload FFmpeg when component mounts
+  useEffect(() => {
+    if (!ffmpegLoaded && !ffmpegLoading) {
+      loadFFmpeg().catch((error) => {
+        console.error("Failed to preload FFmpeg:", error);
+      });
+    }
+  }, [ffmpegLoaded, ffmpegLoading, loadFFmpeg]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -225,6 +252,17 @@ export default function ReelsPage() {
     }
   };
 
+  const handleOpenAudioModal = (reel: Reel) => {
+    setSelectedReel(reel);
+    setAudioModalOpen(true);
+  };
+
+  const handleCloseAudioModal = () => {
+    setAudioModalOpen(false);
+    setSelectedReel(null);
+    setSelectedAudioUrl(null);
+  };
+
   const handleDownload = (url: string, filename: string) => {
     const link = document.createElement("a");
     link.href = url;
@@ -232,6 +270,47 @@ export default function ReelsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleBlendAudio = async (reel: Reel) => {
+    if (!reel.url || !selectedAudioUrl) {
+      toast.error("Please select an audio file first");
+      return;
+    }
+
+    if (!ffmpegLoaded) {
+      toast.error(
+        "FFmpeg is still loading. Please wait a moment and try again."
+      );
+      return;
+    }
+
+    try {
+      setIsBlending(true);
+      setBlendProgress(0);
+
+      toast.info("Starting audio blending... This may take a moment.");
+
+      const result = await blendAudioWithVideo({
+        videoUrl: reel.url,
+        audioUrl: selectedAudioUrl,
+        onProgress: setBlendProgress,
+      });
+
+      if (result.success && result.blob) {
+        const filename = `reel-with-audio-${reel.id}.mp4`;
+        downloadBlob(result.blob, filename);
+        toast.success("Audio blended successfully! Download started.");
+      } else {
+        toast.error(result.error || "Failed to blend audio");
+      }
+    } catch (error) {
+      console.error("Audio blending error:", error);
+      toast.error("Failed to blend audio with video");
+    } finally {
+      setIsBlending(false);
+      setBlendProgress(0);
+    }
   };
 
   const handleCreateReel = async () => {
@@ -442,77 +521,99 @@ export default function ReelsPage() {
                   {reels.map((reel) => (
                     <Card
                       key={reel.id}
-                      className="p-4 flex flex-col space-y-3 hover:shadow-md transition-shadow"
+                      className="p-5 flex flex-col space-y-4 hover:shadow-lg transition-all duration-200 border border-gray-100"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-primary/10 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3 flex-1 min-w-0">
+                          <div className="p-2.5 bg-primary/10 rounded-xl flex-shrink-0">
                             <Film className="h-5 w-5 text-primary" />
                           </div>
-                          <div>
-                            <div className="font-medium text-sm line-clamp-1">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-base line-clamp-1 mb-1">
                               {reel.title}
                             </div>
-                            <div className="text-xs text-black/60">
+                            <div className="text-sm text-gray-500 mb-2">
                               {formatDate(reel.createdAt)}
                             </div>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={
-                            reel.status === "COMPLETED"
-                              ? "default"
-                              : reel.status === "PROCESSING"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                          className="text-xs"
-                        >
-                          {reel.status}
-                        </Badge>
-                      </div>
-
-                      {reel.description && (
-                        <div className="text-xs text-black/60 line-clamp-2">
-                          {reel.description}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between text-xs text-black/60">
-                        {reel.videoIdea && (
-                          <div className="flex items-center space-x-1">
-                            <FileText className="h-3 w-3" />
-                            <span>From idea</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {reel.status === "COMPLETED" && (
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePlayPause(reel)}
-                            className="flex-1"
-                          >
-                            {playingReel === reel.id ? (
-                              <Pause className="h-4 w-4 mr-2" />
-                            ) : (
-                              <Play className="h-4 w-4 mr-2" />
+                            {reel.description && (
+                              <div className="text-sm text-gray-600 line-clamp-2">
+                                {reel.description}
+                              </div>
                             )}
-                            {playingReel === reel.id ? "Pause" : "View"}
-                          </Button>
-                          {reel.url && (
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          <Badge
+                            variant={
+                              reel.status === "COMPLETED"
+                                ? "default"
+                                : reel.status === "PROCESSING"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                            className="text-xs px-2 py-1"
+                          >
+                            {reel.status}
+                          </Badge>
+                          {reel.status === "COMPLETED" && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                handleDownload(reel.url!, `reel-${reel.id}.mp4`)
-                              }
+                              onClick={() => handleOpenAudioModal(reel)}
+                              className="text-xs px-3 py-1 h-7"
                             >
-                              <Download className="h-4 w-4" />
+                              <Music className="h-3 w-3 mr-1" />
+                              Add Audio
                             </Button>
                           )}
+                        </div>
+                      </div>
+
+                      {reel.videoIdea && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <span>Created from video idea</span>
+                        </div>
+                      )}
+
+                      {reel.status === "COMPLETED" && (
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePlayPause(reel)}
+                              className="flex-1 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium"
+                            >
+                              {playingReel === reel.id ? (
+                                <>
+                                  <Pause className="h-4 w-4 mr-2" />
+                                  Pause
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="h-4 w-4 mr-2" />
+                                  View Reel
+                                </>
+                              )}
+                            </Button>
+                            {reel.url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDownload(
+                                    reel.url!,
+                                    `reel-${reel.id}.mp4`
+                                  )
+                                }
+                                className="bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                                title="Download original video"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </Card>
@@ -731,6 +832,131 @@ export default function ReelsPage() {
                 </p>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Audio Upload Modal */}
+      <Dialog open={audioModalOpen} onOpenChange={handleCloseAudioModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Music className="h-5 w-5" />
+              <span>Add Audio to Reel</span>
+            </DialogTitle>
+            <DialogDescription>
+              Upload an audio file to blend with "{selectedReel?.title}"
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {!selectedAudioUrl ? (
+              <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                <UploadButton
+                  endpoint="audioFile"
+                  onUploadBegin={() => {
+                    toast.info("Uploading audio...");
+                  }}
+                  onClientUploadComplete={(res) => {
+                    if (res && res[0]) {
+                      setSelectedAudioUrl(res[0].ufsUrl);
+                      toast.success("Audio uploaded successfully");
+                    }
+                  }}
+                  onUploadError={(error) => {
+                    console.error(error);
+                    toast.error("Failed to upload audio");
+                  }}
+                  appearance={{
+                    button:
+                      "bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg text-sm font-medium",
+                    clearBtn: "hidden",
+                  }}
+                  content={{
+                    button: (
+                      <div className="flex items-center space-x-2">
+                        <Upload className="h-4 w-4" />
+                        <span>Choose Audio File</span>
+                      </div>
+                    ),
+                    allowedContent: "Audio up to 8MB",
+                  }}
+                />
+                <p className="text-sm text-gray-500 mt-3">
+                  MP3, WAV, or other audio formats
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Music className="h-5 w-5 text-green-600" />
+                    <div>
+                      <div className="text-sm text-green-800 font-medium">
+                        Audio file ready
+                      </div>
+                      <div className="text-xs text-green-600">
+                        Ready to blend with video
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedAudioUrl(null)}
+                    className="text-green-600 hover:text-green-700 h-8 w-8 p-0"
+                  >
+                    ✕
+                  </Button>
+                </div>
+
+                <Button
+                  onClick={() => selectedReel && handleBlendAudio(selectedReel)}
+                  disabled={isBlending || ffmpegLoading || !ffmpegLoaded}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-3 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {ffmpegLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Loading FFmpeg...</span>
+                    </div>
+                  ) : isBlending ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Blending Audio...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <Download className="h-4 w-4" />
+                      <span>Blend & Download</span>
+                    </div>
+                  )}
+                </Button>
+
+                {isBlending && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Processing audio...</span>
+                      <span className="text-gray-500 font-medium">
+                        {blendProgress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${blendProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={handleCloseAudioModal}>
+              {selectedAudioUrl ? "Cancel" : "Close"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
