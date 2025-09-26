@@ -220,3 +220,17 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 
 
 <img src="images/End to End Activity Diagram.png">
+
+
+
+<br>
+<br>
+<br>
+
+## We secured 𝟏𝐬𝐭 𝐑𝐮𝐧𝐧𝐞𝐫-𝐮𝐩 𝐚𝐭 𝐇𝐚𝐜𝐤𝐓𝐡𝐞𝐀𝐈 𝟐𝟎𝟐𝟓, 𝐩𝐨𝐰𝐞𝐫𝐞𝐝 𝐛𝐲 𝐒𝐦𝐲𝐭𝐡𝐨𝐬! 
+
+<img src="images/20250925_200349.jpg">
+
+<img src="images/FB_IMG_1758907357835.jpg">
+
+
