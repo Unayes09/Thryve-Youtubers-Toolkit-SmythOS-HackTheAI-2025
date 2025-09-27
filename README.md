@@ -225,8 +225,28 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 7 Next_Video_Suggestion
 ```
 
-  <img src="images/AI AGENT 1.png" width="45%" />
-  <img src="images/AI AGENT 1 - 1.png" width="45%" />
+<img src="images/AI AGENT 1.png" />
+  
+<img src="images/AI AGENT 1 - 1.png" />
+
+<br>
+
+# AI AGENT 2:
+
+```
+1 Channel Search
+2 Thumbnail Make
+3 Voice Making
+4 Video Plan
+5 YT Chapter Generator
+6 Reels Making
+7 SEO Agent
+8 CTR Predictor
+```
+
+<img src="images/AI agent 2.png" />
+  
+<img src="images/AI agent 2 - 1.png" />
 
 
 # ER Diagram:
