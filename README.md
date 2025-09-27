@@ -173,7 +173,7 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 # 🛠 Tech Stack
 
 ### Frontend
--   ![Next.js] **Next.js 15**: Framework for server-rendered React applications and full-stack features.
+-   ![Next.js](https://img.icons8.com/?size=50&id=3752&format=png&color=000000) **Next.js 15**: Framework for server-rendered React applications and full-stack features.
 -   ![React](https://img.icons8.com/color/48/000000/react-native.png) **React 19**: Core library for building dynamic and interactive user interfaces.
 ### Backend
 -   ![Node.js](https://img.icons8.com/color/48/000000/nodejs.png) **Node.js**: Server-side JavaScript runtime environment.
@@ -182,13 +182,13 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 -   ![PostgreSQL](https://img.icons8.com/color/48/000000/postgreesql.png) **PostgreSQL**: Relational database for structured data management.
 -   ![Prisma](https://img.icons8.com/color/48/prisma-orm.png) **Prisma ORM**: Toolkit for modeling and querying PostgreSQL efficiently.
 ### Vector Database
--   ![Pinecone] **Pinecone**: Vector database for semantic search and embeddings.
--   ![OpenAI](https://img.icons8.com/color/48/000000/openai.png) **OpenAI Embeddings**: Used for generating high-quality vector representations.   
+-   ![Pinecone](https://img.icons8.com/?size=50&id=nucWBYhGEyq9&format=png&color=000000) **Pinecone**: Vector database for semantic search and embeddings.
+-   ![OpenAI](https://img.icons8.com/ios/50/chatgpt.png) **OpenAI Embeddings**: Used for generating high-quality vector representations.   
 ### AI & Agent Building
 
 -   ![Smythos](https://smythos.com/favicon.ico) **Smythos AI Agent Builder**: Platform for creating and deploying AI agents.
     
--   ![OpenAI](https://img.icons8.com/color/48/000000/openai.png) **AI/ML Models**:
+-   ![OpenAI](https://img.icons8.com/ios/50/chatgpt.png) **AI/ML Models**:
     
     -   **ChatGPT 4o, 4.1 mini, GPT-5** – Conversational intelligence and reasoning.
         
@@ -209,6 +209,24 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 
 
 
+<br>
+
+# AI AGENT 1:
+
+### Skills:
+
+```
+1 Competitor Find
+2 Gap Finder
+3 Auto Gap Finder
+4 Web Searcher
+5 Get_My_and_My_Competitors_Video_List
+6 Analyze_Single_Video_Comments
+7 Next_Video_Suggestion
+```
+
+  <img src="images/AI AGENT 1.png" width="45%" />
+  <img src="images/AI AGENT 1 - 1.png" width="45%" />
 
 
 # ER Diagram:
