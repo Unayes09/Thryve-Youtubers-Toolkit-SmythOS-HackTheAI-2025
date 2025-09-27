@@ -249,6 +249,9 @@ Thryve is an AI-powered platform designed to supercharge YouTube creators. It tr
 <img src="images/AI agent 2 - 1.png" />
 
 
+<br>
+<br>
+
 # ER Diagram:
 
 <img src="images/Thryve ERD.png">
