@@ -1,8 +1,8 @@
 # Thryve
 
-**From idea to impact, effortlessly.**
+<img src="images/logo (1).png" width="45%">
 
-Thryve is an AI-powered platform designed to supercharge YouTube creators. It transforms raw content and data into actionable insights, fresh video ideas, and ready-to-publish assets — all in one streamlined workflow.
+"𝐓𝐡𝐫𝐲𝐯𝐞", an AI-powered platform designed to supercharge YouTube content creation. Our tool lets you analyze your own channel and competitors, find content gaps and generate the next video ideas based on trends, comments, gaps, and past videos, auto-generate voiceovers with zero-shot cloning, create and edit thumbnails, generate reels automatically, and analyze comments for feedback, sentiment, and suggestions—along with many more features designed to make content creation smarter and easier.
 
 ---
 
