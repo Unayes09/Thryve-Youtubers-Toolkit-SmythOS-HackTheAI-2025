@@ -225,6 +225,8 @@
 7 Next_Video_Suggestion
 ```
 
+### OpenAPI Url: https://cmfwzo2zi1we6jxgtai6c9rye.agent.a.smyth.ai/api-docs/openapi.json
+
 <img src="images/AI AGENT 1.png" />
   
 <img src="images/AI AGENT 1 - 1.png" />
@@ -232,6 +234,8 @@
 <br>
 
 # AI AGENT 2:
+
+### Skills:
 
 ```
 1 Channel Search
@@ -243,6 +247,8 @@
 7 SEO Agent
 8 CTR Predictor
 ```
+
+### OpenAPI Url: https://cmfwgrzxvyw08jxgtxz7xv3ln.agent.a.smyth.ai/api-docs/openapi.json
 
 <img src="images/AI agent 2.png" />
   
