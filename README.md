@@ -8,6 +8,61 @@
 
 ---
 
+
+# Run the project:
+
+## Setup .env file
+
+```javascript
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+DATABASE_URL=
+DIRECT_URL=
+
+YOUTUBE_API_KEY=
+STRIPE_SECRET_KEY=
+
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+UPLOADTHING_TOKEN=
+SMYTHOS_AGENT1=
+SMYTHOS_AGENT2=
+FAL_WEBHOOK=
+
+
+# Python
+PYTHON_BACKEND=
+
+# YouTube Data API key (used to fetch commentThreads)
+YT_API_KEY= 
+
+# OpenAI API
+OPENAI_API_KEY=
+
+# Pinecone (serverless)
+PINECONE_API_KEY=
+```
+
+## Run commands:
+
+```bash
+git clone <url>
+npm install
+npm run build
+npm run start
+```
+
+```bash
+cd python
+python3 -m venv venv
+source venv/bin/activate   
+pip install -r requirements.txt 
+uvicorn RAG:app --reload
+```
+
+
+
 # ✨ Features
 
 - **YouTube Channel Fetch + Transcription** – Connect your channel, fetch the latest 5 videos, auto-generate transcripts, and store them as vector embeddings for analysis and reuse.
